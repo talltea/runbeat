@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1a1a2e">
+  <link rel="manifest" href="manifest.json">
+  <title>RunBeat</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+      width: 100%;
+      max-width: 400px;
+    }
+    .bpm-display {
+      font-size: 6rem;
+      font-weight: 700;
+      color: #e94560;
+      line-height: 1;
+      margin: 1rem 0;
+      transition: color 0.05s;
+    }
+    .bpm-display.flash { color: #ff6b81; }
+    .label { font-size: 1.2rem; color: #888; text-transform: uppercase; letter-spacing: 0.2em; }
+    .slider-container { margin: 2rem 0; padding: 0 1rem; }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 48px;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 8px;
+      background: #333;
+      border-radius: 4px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 48px;
+      height: 48px;
+      background: #e94560;
+      border-radius: 50%;
+      margin-top: -20px;
+    }
+    .controls { display: flex; gap: 1rem; justify-content: center; margin: 2rem 0; flex-wrap: wrap; }
+    .btn {
+      background: #e94560;
+      color: white;
+      border: none;
+      padding: 1rem 2.5rem;
+      font-size: 1.3rem;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: 600;
+      min-width: 140px;
+      transition: background 0.2s;
+    }
+    .btn:active { background: #c0392b; }
+    .btn.stop { background: #444; }
+    .btn.stop:active { background: #333; }
+    .nudge-controls { display: flex; gap: 0.5rem; justify-content: center; margin: 1rem 0; }
+    .nudge {
+      background: #2a2a4a;
+      color: #e94560;
+      border: 2px solid #e94560;
+      width: 56px;
+      height: 56px;
+      font-size: 1.4rem;
+      border-radius: 50%;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .nudge:active { background: #e94560; color: white; }
+    .presets { display: flex; gap: 0.5rem; justify-content: center; margin: 1.5rem 0; flex-wrap: wrap; }
+    .preset {
+      background: #2a2a4a;
+      color: #aaa;
+      border: 1px solid #444;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .preset:active { background: #444; }
+  </style>
+  <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+</head>
+<body>
+  <div class="container">
+    <div class="label">BPM</div>
+    <div class="bpm-display" id="bpmDisplay">170</div>
+
+    <div class="nudge-controls">
+      <button class="nudge" id="downFive">-5</button>
+      <button class="nudge" id="downOne">-1</button>
+      <button class="nudge" id="upOne">+1</button>
+      <button class="nudge" id="upFive">+5</button>
+    </div>
+
+    <div class="slider-container">
+      <input type="range" id="bpmSlider" min="60" max="220" value="170">
+    </div>
+
+    <div class="presets">
+      <button class="preset" data-bpm="150">150 Easy</button>
+      <button class="preset" data-bpm="160">160 Jog</button>
+      <button class="preset" data-bpm="170">170 Run</button>
+      <button class="preset" data-bpm="180">180 Fast</button>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="startBtn">Start</button>
+      <button class="btn stop" id="stopBtn">Stop</button>
+    </div>
+  </div>
+
+  <script src="metronome.js"></script>
+</body>
+</html>
