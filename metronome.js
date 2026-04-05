@@ -5,8 +5,10 @@ class Metronome {
     this.isPlaying = false;
     this.nextNoteTime = 0;
     this.timerID = null;
-    this.scheduleAheadTime = 0.1; // seconds
-    this.lookahead = 25; // ms
+    this.scheduleAheadTime = 0.1;
+    this.lookahead = 25;
+    this.currentBeat = 0;
+    this.beatsPerMeasure = 0; // 0 = steady (no accent)
 
     this.initUI();
   }
@@ -20,8 +22,6 @@ class Metronome {
     }
   }
 
-  // Use the "scheduling ahead" pattern for rock-solid timing
-  // (Web Audio API schedules in the audio thread, not JS main thread)
   playClick(time) {
     const osc = this.audioCtx.createOscillator();
     const gain = this.audioCtx.createGain();
@@ -29,21 +29,35 @@ class Metronome {
     osc.connect(gain);
     gain.connect(this.audioCtx.destination);
 
-    osc.frequency.value = 1000;
-    osc.type = 'triangle';
+    if (this.beatsPerMeasure === 0) {
+      // Steady beat — all clicks the same
+      osc.frequency.value = 1000;
+      gain.gain.setValueAtTime(0.4, time);
+    } else if (this.currentBeat === 0) {
+      // Accented downbeat
+      osc.frequency.value = 1200;
+      gain.gain.setValueAtTime(0.5, time);
+    } else {
+      // Off-beats
+      osc.frequency.value = 800;
+      gain.gain.setValueAtTime(0.25, time);
+    }
 
-    gain.gain.setValueAtTime(0.4, time);
+    osc.type = 'triangle';
     gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
 
     osc.start(time);
     osc.stop(time + 0.05);
 
-    // Visual flash (approximate, UI thread)
     const delay = (time - this.audioCtx.currentTime) * 1000;
     setTimeout(() => {
       this.bpmDisplay.classList.add('flash');
       setTimeout(() => this.bpmDisplay.classList.remove('flash'), 50);
     }, Math.max(0, delay));
+
+    if (this.beatsPerMeasure > 0) {
+      this.currentBeat = (this.currentBeat + 1) % this.beatsPerMeasure;
+    }
   }
 
   scheduler() {
@@ -57,6 +71,7 @@ class Metronome {
     if (this.isPlaying) return;
     this.initAudio();
     this.isPlaying = true;
+    this.currentBeat = 0;
     this.nextNoteTime = this.audioCtx.currentTime;
     this.timerID = setInterval(() => this.scheduler(), this.lookahead);
   }
@@ -73,6 +88,16 @@ class Metronome {
     this.bpm = Math.min(220, Math.max(60, bpm));
     this.bpmDisplay.textContent = this.bpm;
     this.bpmSlider.value = this.bpm;
+  }
+
+  setPattern(beats) {
+    this.beatsPerMeasure = beats;
+    this.currentBeat = 0;
+
+    // Update button styles
+    document.querySelectorAll('.pattern').forEach(btn => {
+      btn.classList.toggle('active', parseInt(btn.dataset.beats) === beats);
+    });
   }
 
   initUI() {
@@ -95,7 +120,13 @@ class Metronome {
       btn.addEventListener('click', () => this.setBpm(parseInt(btn.dataset.bpm)));
     });
 
-    // Keep audio alive when screen is locked
+    document.querySelectorAll('.pattern').forEach(btn => {
+      btn.addEventListener('click', () => this.setPattern(parseInt(btn.dataset.beats)));
+    });
+
+    // Set initial active state
+    this.setPattern(0);
+
     if ('wakeLock' in navigator) {
       document.getElementById('startBtn').addEventListener('click', async () => {
         try { await navigator.wakeLock.request('screen'); } catch (e) {}

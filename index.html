@@ -96,6 +96,22 @@
       cursor: pointer;
     }
     .preset:active { background: #444; }
+    .patterns { display: flex; gap: 0.5rem; justify-content: center; margin: 1.5rem 0; }
+    .pattern {
+      background: #2a2a4a;
+      color: #aaa;
+      border: 2px solid #444;
+      padding: 0.6rem 1.2rem;
+      border-radius: 20px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .pattern:active { background: #444; }
+    .pattern.active {
+      border-color: #e94560;
+      color: #e94560;
+      background: #3a2a3a;
+    }
   </style>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
 </head>
@@ -113,6 +129,12 @@
 
     <div class="slider-container">
       <input type="range" id="bpmSlider" min="60" max="220" value="170">
+    </div>
+
+    <div class="patterns">
+      <button class="pattern" data-beats="0">Steady</button>
+      <button class="pattern" data-beats="3">1-2-3</button>
+      <button class="pattern" data-beats="4">1-2-3-4</button>
     </div>
 
     <div class="presets">
