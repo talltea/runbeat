@@ -1,7 +1,8 @@
 {
   "name": "RunBeat Metronome",
   "short_name": "RunBeat",
-  "start_url": "/runbeat/index.html",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#1a1a2e",
