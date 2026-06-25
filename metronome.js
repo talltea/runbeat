@@ -1,14 +1,18 @@
 class Metronome {
   constructor() {
     this.audioCtx = null;
-    this.bpm = 170;
     this.isPlaying = false;
     this.nextNoteTime = 0;
     this.timerID = null;
     this.scheduleAheadTime = 0.1;
     this.lookahead = 25;
     this.currentBeat = 0;
-    this.beatsPerMeasure = 0; // 0 = steady (no accent)
+
+    // Restore last-used settings
+    const savedBpm = parseInt(localStorage.getItem('runbeat.bpm'), 10);
+    this.bpm = Number.isNaN(savedBpm) ? 170 : savedBpm;
+    const savedBeats = parseInt(localStorage.getItem('runbeat.beats'), 10);
+    this.beatsPerMeasure = Number.isNaN(savedBeats) ? 0 : savedBeats; // 0 = steady (no accent)
 
     this.initUI();
   }
@@ -32,15 +36,15 @@ class Metronome {
     if (this.beatsPerMeasure === 0) {
       // Steady beat — all clicks the same
       osc.frequency.value = 1000;
-      gain.gain.setValueAtTime(0.4, time);
+      gain.gain.setValueAtTime(0.9, time);
     } else if (this.currentBeat === 0) {
       // Accented downbeat
       osc.frequency.value = 1200;
-      gain.gain.setValueAtTime(0.5, time);
+      gain.gain.setValueAtTime(1.0, time);
     } else {
       // Off-beats
       osc.frequency.value = 800;
-      gain.gain.setValueAtTime(0.25, time);
+      gain.gain.setValueAtTime(0.6, time);
     }
 
     osc.type = 'triangle';
@@ -74,6 +78,7 @@ class Metronome {
     this.currentBeat = 0;
     this.nextNoteTime = this.audioCtx.currentTime;
     this.timerID = setInterval(() => this.scheduler(), this.lookahead);
+    this.updateToggle();
   }
 
   stop() {
@@ -82,17 +87,33 @@ class Metronome {
       clearInterval(this.timerID);
       this.timerID = null;
     }
+    this.updateToggle();
+  }
+
+  toggle() {
+    if (this.isPlaying) {
+      this.stop();
+    } else {
+      this.start();
+    }
+  }
+
+  updateToggle() {
+    this.toggleBtn.textContent = this.isPlaying ? 'Stop' : 'Start';
+    this.toggleBtn.classList.toggle('playing', this.isPlaying);
   }
 
   setBpm(bpm) {
     this.bpm = Math.min(220, Math.max(60, bpm));
     this.bpmDisplay.textContent = this.bpm;
     this.bpmSlider.value = this.bpm;
+    localStorage.setItem('runbeat.bpm', this.bpm);
   }
 
   setPattern(beats) {
     this.beatsPerMeasure = beats;
     this.currentBeat = 0;
+    localStorage.setItem('runbeat.beats', beats);
 
     // Update button styles
     document.querySelectorAll('.pattern').forEach(btn => {
@@ -103,13 +124,13 @@ class Metronome {
   initUI() {
     this.bpmDisplay = document.getElementById('bpmDisplay');
     this.bpmSlider = document.getElementById('bpmSlider');
+    this.toggleBtn = document.getElementById('toggleBtn');
 
     this.bpmSlider.addEventListener('input', (e) => {
       this.setBpm(parseInt(e.target.value));
     });
 
-    document.getElementById('startBtn').addEventListener('click', () => this.start());
-    document.getElementById('stopBtn').addEventListener('click', () => this.stop());
+    this.toggleBtn.addEventListener('click', () => this.toggle());
 
     document.getElementById('upOne').addEventListener('click', () => this.setBpm(this.bpm + 1));
     document.getElementById('downOne').addEventListener('click', () => this.setBpm(this.bpm - 1));
@@ -124,11 +145,14 @@ class Metronome {
       btn.addEventListener('click', () => this.setPattern(parseInt(btn.dataset.beats)));
     });
 
-    // Set initial active state
-    this.setPattern(0);
+    // Reflect restored settings in the UI
+    this.setBpm(this.bpm);
+    this.setPattern(this.beatsPerMeasure);
+    this.updateToggle();
 
     if ('wakeLock' in navigator) {
-      document.getElementById('startBtn').addEventListener('click', async () => {
+      this.toggleBtn.addEventListener('click', async () => {
+        if (!this.isPlaying) return;
         try { await navigator.wakeLock.request('screen'); } catch (e) {}
       });
     }

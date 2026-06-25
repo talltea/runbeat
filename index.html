@@ -70,8 +70,8 @@
       transition: background 0.2s;
     }
     .btn:active { background: #c0392b; }
-    .btn.stop { background: #444; }
-    .btn.stop:active { background: #333; }
+    .btn.playing { background: #444; }
+    .btn.playing:active { background: #333; }
     .nudge-controls { display: flex; gap: 0.5rem; justify-content: center; margin: 1rem 0; }
     .nudge {
       background: #2a2a4a;
@@ -145,8 +145,7 @@
     </div>
 
     <div class="controls">
-      <button class="btn" id="startBtn">Start</button>
-      <button class="btn stop" id="stopBtn">Stop</button>
+      <button class="btn" id="toggleBtn">Start</button>
     </div>
   </div>
 

@@ -1,4 +1,4 @@
-const CACHE = 'runbeat-v2';  // was v1
+const CACHE = 'runbeat-v3';  // was v2
 const ASSETS = ['./', './index.html', './metronome.js', './manifest.json'];
 
 self.addEventListener('install', e => {
